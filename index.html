@@ -15,14 +15,6 @@
     };
   </script>
   
-  <!-- MathJax library -->
-  <script
-    defer
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
-  </script>
-
-
-
   <style>
     /* ===== Global Theme (Light) ===== */
     :root{
@@ -428,7 +420,7 @@
         확장 상태를 구성하면 시스템은 2차 형태의 선형 시스템으로 표현되며, 이때 ESO의 성능은 관측 이득 $L_{1}$, $L_{2}$를 어떻게 선택하느냐에 따라 결정된다.
       </p>
 
-      <h3 id="disturbance-eso">5.3 ESO gain design</h3>
+      <h3 id="disturbance-gain-eso""5.3 ESO gain design</h3>
  
       <details>
         <summary style="cursor:pointer; font-weight:bold;">[ESO 이득 설계 (보기/숨기기)]</summary>
@@ -555,7 +547,7 @@
 
 
 
-      <h3 id="controller-closedloop">6.3 Closed-loop Structure</h3>
+      <h3 id="controller-closedloop11">6.4 Closed-loop Structure</h3>
       <p><!-- TODO: ARX+ESO+MPC 결합 폐루프 설명 비워둠 --></p>
 
       <!-- 기존 Linearized MPC 섹션은 Controller Design의 상세로 이동(내용 재사용) -->
@@ -648,5 +640,13 @@
     })();
   </script>
 
+  <!-- ===== MathJax library (BODY 끝, 반드시 이 위치) ===== -->
+  <script
+    id="MathJax-script"
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+  </script>
+
 </body>
+</html>
+
 </html>
