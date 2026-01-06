@@ -59,6 +59,12 @@
     h3{font-size:16px; margin:16px 0 6px}
     p{margin:10px 0}
 
+    hr.divider {
+      border: none;
+      border-top: 1.5px solid #ccc;
+      margin: 2.5rem 0;
+    }
+
     /* ===== Components ===== */
     .abstract{
       border:1px solid var(--rule); background:var(--panel);
@@ -105,6 +111,17 @@
       padding:15px; border-radius:8px; margin-top:10px;
       border:2px solid #000000; background:transparent;
     }
+    .figure-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .figure-grid img {
+      width: 100%;
+      height: auto;
+    }
   </style>
 </head>
 
@@ -135,18 +152,18 @@
 
     <!-- ===== External Links ===== -->
     <div class="linkbar">
-      <a class="btn" id="btnGithub" href="https://github.com/your-id/mpc-notes" target="_blank" rel="noopener">GitHub</a>
-      <a class="btn" id="btnPDF" href="./assets/paper.pdf" target="_blank" rel="noopener">PDF</a>
-      <a class="btn" id="btnRepo" href="https://github.com/your-id" target="_blank" rel="noopener">Repository</a>
+      <a class="btn" id="btnGithub" href="https://github.com/seminarNotes" target="_blank" rel="noopener">GitHub</a>
+      <!--<a class="btn" id="btnPDF" href="./assets/paper.pdf" target="_blank" rel="noopener">PDF</a>
+      <a class="btn" id="btnRepo" href="https://github.com/your-id" target="_blank" rel="noopener">Repository</a> -->
     </div>
 
     <!-- =========================================================
          (1) TL;DR
          ========================================================= -->
-    <section id="tldr">
+    <section id="summary">
       <h2>1. Summary</h2>
 
-      <h3 id="tldr-summary">1.1 Project Summary</h3>
+      <h3 id="proejct-summary">1.1 Project Summary</h3>
       <div class="abstract">
         <p>
           본 프로젝트는 열처리 공정에서 기존 PID 제어기를 데이터 기반 모델 예측 제어(MPC)로 대체하는 것을 목표로 한다.
@@ -165,7 +182,7 @@
         </p>
       </div>
 
-      <h3 id="tldr-contrib">1.2 Key Contributions</h3>
+      <h3 id="key-contribution">1.2 Key Contributions</h3>
       <ul>
         <li>실제 운전 데이터 기반 ARX(1,1) 모델 식별 및 검증</li>
         <li>시간 지연·냉부하 효과를 외란으로 흡수하는 ESO 설계</li>
@@ -174,35 +191,43 @@
       </ul>
     </section>
 
+    <hr>
 
     <!-- =========================================================
          Table of Contents (섹션/서브섹션 구조 반영)
          ========================================================= -->
     <section id="toc">
-      <h2>Table of Contents</h2>
-      <nav class="toc">
-        <ol>
-          <li><a href="#tldr">TL;DR</a></li>
-          <li><a href="#about">About the Project</a></li>
-          <li><a href="#system">System &amp; Approach</a></li>
-          <li><a href="#modeling">Modeling</a></li>
-          <li><a href="#observer">Extended State Observer</a></li>
-          <li><a href="#controller">Controller Design</a></li>
-          <li><a href="#results">Results</a></li>
-          <li><a href="#insights">Practical Insights</a></li>
-          <li><a href="#references">References</a></li>
-        </ol>
-      </nav>
-    </section>
+    <h2>Table of Contents</h2>
+    <nav class="toc">
+      <ol>
+        <li><a href="#summary">Summary</a></li>
+        <li><a href="#about-the-project">About the Project</a></li>
+        <li><a href="#system-and-approach">System &amp; Approach</a></li>
+        <li><a href="#control-design-framework">Control Design Framework</a></li>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#insights">Insights</a></li>
+        <li><a href="#references">References</a></li>
+      </ol>
+    </nav>
+  </section>
+
+    <hr>
 
     <!-- =========================================================
          (2) About the Project
          ========================================================= -->
-    <section id="about">
+    <section id="about-the-project">
       <h2>2. About the Project</h2>
 
       <!-- ===================================================== -->
-      <h3 id="about-bg">2.1 Problem Background</h3>
+      <h3 id="about-background">2.1 Problem Background</h3>
+
+      <figure class="figure-grid">
+        <img src="./assets/figure/plant.png" alt="Plant">
+        <img src="./assets/figure/heat_controller.png" alt="heat_controller">
+      </figure>
+      
+
       <p>
         열처리 공정은 제품의 기계적 강도와 미세 조직을 결정하는 핵심 공정으로,
         챔버 내부 온도를 목표 값에 정확히 도달시키고 일정 시간 안정적으로 유지하는 것이 필수적이다.
@@ -228,31 +253,64 @@
       </p>
 
       <!-- ===================================================== -->
-      <h3 id="about-obj">2.2 Control Objective</h3>
-      <p>
-        본 공정의 제어 목표는
-        챔버에 물질이 투입된 직후 발생하는 냉부하 이후,
-        제품 품질을 보장하는 허용 오차 범위(약 ±5~10℃) 내에서
-        에너지 효율적으로 온도를 제어하는 것이다.
-      </p>
+      <h3 id="control-object">2.2 Control Objective</h3>
 
       <p>
-        구체적으로, 제어기는 다음과 같은 온도 트래킹 시나리오를 만족해야 한다.
-        첫째, 냉부하로 인해 하강한 챔버 온도를
-        단시간 내에 930℃까지 상승시킨 후 3시간 동안 안정적으로 유지해야 한다.
-        둘째, 이후 목표 온도를 880℃로 변경하여
-        추가로 1시간 동안 유지해야 한다.
+        본 공정의 제어 목표는 챔버에 물질이 투입된 직후 발생하는 냉부하(cold load) 이후에도,
+        제품 품질을 보장하는 허용 오차 범위(약 ±5~10&nbsp;℃) 내에서
+        목표 온도를 안정적으로 추종하면서,
+        공정 설비 제약을 만족하는 에너지 효율적인 열 공정 운전을 달성하는 것이다.
+        이를 위해 제어기는 두 단계로 구성된 목표 온도 시나리오를 만족해야 한다.
+        첫 번째 단계에서는 냉부하로 인해 하강한 챔버 온도를
+        단시간 내에 <strong>930&nbsp;℃</strong>까지 상승시킨 후,
+        온도 오차가 허용 범위 내에 유지되는 상태를
+        <strong>180분(3시간)</strong> 동안 안정적으로 지속해야 한다.
+        이후 두 번째 단계에서는 목표 온도를 <strong>880&nbsp;℃</strong>로 전환하고,
+        동일한 허용 오차 조건 하에서
+        <strong>60분(1시간)</strong> 동안 온도를 유지하는 것을 목표로 한다.
       </p>
-
+      
       <p>
-        이 과정에서 히터 출력 한계, 입력 변화율 제한,
-        최대 허용 온도와 같은 공정 설비 제약을 위반하지 않으면서도,
-        불필요한 입력 변동을 최소화하여
-        에너지 효율적인 제어 입력을 계산하는 것이 핵심 목표이다.
+        본 시스템의 중요한 특징은 사전에 고정된 시간 스케줄을 따르지 않고,
+        <strong>현재 온도가 목표 온도 범위 내에 일정 시간 동안 유지되었는지</strong>를 기준으로
+        다음 목표로 자동 전환하는
+        <em>목표 달성 기반 스케줄링(Achievement-Based Scheduling)</em>을 적용한다는 점이다.
+        구체적으로,
       </p>
-
+      
+      <p style="text-align:center;">
+        $$ |T_k - 930| \le \varepsilon $$
+      </p>
+      
+      <p>
+        조건이 연속적으로 180분 동안 만족되면 두 번째 목표 단계로 전환되며,
+      </p>
+      
+      <p style="text-align:center;">
+        $$ |T_k - 880| \le \varepsilon $$
+      </p>
+      
+      <p>
+        조건이 60분 동안 유지되면 전체 공정이 종료된다.
+        이를 통해 외란이나 초기 조건 변화에 따라
+        목표 전환 시점을 유연하게 결정할 수 있다.
+      </p>
+      
+      <p>
+        이와 동시에 제어기는 히터 출력 상한,
+        입력 변화율 제한,
+        최대 허용 온도와 같은 공정 설비 제약을 엄격히 만족해야 하며,
+        과도한 제어 입력 변동을 억제하여
+        에너지 소비를 최소화하는 입력을 계산하는 것을 핵심 목표로 한다.
+        결과적으로 본 제어 목표는
+        <strong>정확한 온도 추종 성능</strong>,
+        <strong>외란에 대한 강인성</strong>,
+        그리고 <strong>제약을 고려한 에너지 효율적 운전</strong>을
+        동시에 달성하는 데 있다.
+      </p>
+      
       <!-- ===================================================== -->
-      <h3 id="about-contrib">2.3 Personal Contribution</h3>
+      <h3 id="personal-contribution">2.3 Personal Contribution</h3>
 
       <h4>1) 기존 기업 제공 MPC 코드의 문제점 분석</h4>
       <p>
@@ -299,312 +357,495 @@
       </p>
     </section>
 
+    <hr>
 
     <!-- =========================================================
          (3) System & Approach
          ========================================================= -->
-    <section id="system">
+    <section id="system-and-approach">
       <h2>3. System &amp; Approach</h2>
 
-      <h3 id="system-pipeline">3.1 Overall Pipeline</h3>
-      <p>
-        전체 제어 파이프라인은 데이터 기반 모델 식별, 외란 관측, 그리고 모델 예측 제어의 세 단계로 구성된다.
-        먼저, 과거 운전 데이터를 이용해 ARX(1) 형태의 공정 모델을 식별한다.
-        다음으로, 모델링 오차 및 외란을 추정하기 위해 확장 상태 관측기(ESO)를 설계하고,
-        해당 추정치를 MPC 예측 모델에 반영한다.
-        마지막으로, 공정의 물리적 제약 조건을 고려한 MPC를 통해 제어 입력을 계산하고
-        이를 공정에 적용하는 구조를 따른다.
-      </p>
+      <h3 id="overall-pipeline">3.1 Overall Pipeline</h3>
       <figure>
-        <img src="asset/figure_block_diagram.png" alt="Pipeline" />
-        <figcaption>Block Diagram</figcaption>
+        <img src="assets/figure/block_diagram.png" alt="Pipeline" />
       </figure>
 
-
-      <h3 id="system-data">3.2 Data Description</h3>
-      <p>
-        본 연구에서는 실제 열처리 공정에서 수집된 다수의 운전 로그 데이터를 사용하였다.
-        각 데이터는 시간 정보, 공정 온도, 정규화된 제어 입력(전력)으로 구성되어 있으며,
-        일정한 샘플링 주기를 기반으로 기록되었다.
-        이 중 대표적인 운전 데이터를 선택하여 공정 모델을 식별하고,
-        나머지 데이터들은 서로 다른 초기 조건에서의 시뮬레이션 검증에 활용하였다.
-      </p>
-    </section>
-
-    <!-- =========================================================
-         (4) Modeling
-         ========================================================= -->
-    <section id="modeling">
-      <h2>4. Modeling</h2>
-
-      <!-- 기존 Background-ARX 내용을 4장으로 이동 -->
-      <h3 id="modeling-arx">4.1 ARX(1,1) Model Structure</h3>
-      <p>
-        ARX(AutoRegressive with eXogenous input) 모델은 과거 출력값 자기회귀 항을 포함(AR)하고, 외부 입력의 영향을 포함하는 선형 시불변 모델을 의미한다.
-        이 중 과거 출력값과 외부 입력을 단 하나만 사용한 가장 기본형인 ARX(1,1)의 형태는 다음과 같다.
-        온도 모델의 온도 상태 $T_{k}$와 공정 입력 $u_{k}$이라 쓸 때,
-      </p>
-
-      $$
-      T_{k+1} = aT_{k} + bu_{k}
-      $$
-
-      <p>
-        이 때, $a$는 공정의 관성(공정이 얼마나 빠르게 변화하는지)를 나타내며, 열처리 공정은 온도가 매우 느려 $a$가 $1$에 근접할 것이라 기대한다.
-        또한, $b$는 입력의 온도 상승 효과를 나타내며, $b$ 값이 너무 작으면 상승 속도가 부족하여 추종 성능이 저하될 수 있다.
-      </p>
-
-      <h3 id="modeling-id">4.2 Parameter Identification</h3>
-      <p>
-        위 계수는 데이터의 경향을 가장 잘 설명하는 모델로 계수가 결정되어야 하며,
-        이를 위해 최소 자승(Least Square) 기반으로 시스템 식별(System Identification)을 수행한다.
-      </p>
-
-      $$
-      \begin{align}
-      (a^{*}, b^{*})
-      &= \arg\min_{a,b}\ \sum_{k=0}^{N-1} \Big( T_{k+1} - a\,T_k - b\,u_k \Big)^2 \\\\
-      \text{subject to}&\quad a_{\min} \le a \le a_{\max},\quad b_{\min} \le b \le b_{\max}.
-      \end{align}
-      $$
-
-      <p>
-        여기서, $a_{\min}$, $a_{\max}$, $b_{\min}$, $b_{\max}$는 관성 범위, 입력 영향도, 안정성 등을 고려하여 설정하는 값이다.
-        이와 같이 제약을 적용하면 모델의 물리적 일관성을 유지할 수 있으며, MPC가 요구하는 추종 성능과 안정성을 보장 할 수 있다.
-        실험에서는 $a_{\min} = 0$, $a_{\max} = 1$, $b_{\min} = 0$으로 하여 모델을 식별하였다.
-      </p>
-    </section>
-
-    <!-- =========================================================
-         (5) Disturbance Compensation
-         ========================================================= -->
-    <section id="observer">
-      <h2>5. Extended State Observer</h2>
-
-      <h3 id="disturbance-motivation">5.1 Motivation for ESO</h3>
-      <!-- 기존 ESO 설명 문단을 재배치 -->
-      <p>
-        ESO(Extended State Observer)는 시스템의 미지 외란(disturbance)와 비모델링 동역학(unmodelled dynamics)를 하나의 확장된 상태(extended state)로 묶어
-        실시간으로 추정하기 위한 관측기이다. 추정된 외란을 실시간으로 식별된 시스템에 보상해줌으로써,
-        MPC가 사용하는 예측 모델의 신뢰도를 높이고, 제어 입력이 과도하게 증가하거나 추종 오류가 누적되는 것을 방지한다.
-      </p>
-
-      <h3 id="disturbance-eso">5.2 ESO Design</h3>
-      <p>
-        식별된 ARX(1,1) 모델에 외란 상태 변수 $z_{k}$를 도입하여, 확장된 형태는 다음과 같다.
-      </p>
-
-      $$
-      \begin{align}
-      &T_{k+1} = aT_{k} + b u_{k} + z_{k} \\
-      &z_{k+1} = z_{k}
-      \end{align}
-      $$
-
-      <p>
-        이 때, $z_{k}$는 천천히 변화하는 외란이라는 가정 하에, $z_{k+1} = z_{k}$와 같이 두며,
-        ESO는 모델링 오차 $T_{k} - \hat{T}_{k}$를 MPC에 직접 반영할 수 있도록 외란을 실시간으로 추정하는 것이다.
-        일반적인 선형 ESO 구조는 다음과 같이 표현된다.
-      </p>
-
-      $$
-      \begin{align}
-      &\hat{T}_{k+1} = a\hat{T}_{k} + b u_{k} + \hat{z}_{k} + L_{1} \left( T_{k} - \hat{T}_{k} \right) \\
-      &\hat{z}_{k+1} = \hat{z}_{k} + L_{2} \left( T_{k} - \hat{T}_{k} \right) 
-      \end{align}
-      $$
-
-      <p>
-        이 때, $L_{1}$는 상태 추정 오차 보정, $L_{2}$는 외란 항 보정, $\hat{z}_{k}$는 추정된 외란을 나타낸다.
-        ESO는 이렇듯 시스템의 상태 뿐만 아니라, 모델 오차와 외란까지도 동시에 추정하기 위해 설계된 관측기이다.
-        확장 상태를 구성하면 시스템은 2차 형태의 선형 시스템으로 표현되며, 이때 ESO의 성능은 관측 이득 $L_{1}$, $L_{2}$를 어떻게 선택하느냐에 따라 결정된다.
-      </p>
-
-      <h3 id="disturbance-gain-eso""5.3 ESO gain design</h3>
- 
-      <details>
-        <summary style="cursor:pointer; font-weight:bold;">[ESO 이득 설계 (보기/숨기기)]</summary>
-        <div class="detail-box">
-          <p>
-            이러한 이득은 결국 관측기의 고유값(pole)을 어디에 배치하는가에 따라 정해진다. 우선 확장 상태
-            $$
-            x_{k} = \begin{bmatrix} T_{k} & z_{k} \end{bmatrix}^{\top}  
-            $$
-            로 두고, 이 시스템의 동역학은 다음과 같은 선형 형태로 표현된다.
-            $$
-            A = \begin{bmatrix} a & 1 \\ 0 & 1 \end{bmatrix}, \quad B = \begin{bmatrix} b \\ 0 \end{bmatrix}, \quad C = \begin{bmatrix} 1 & 0 \end{bmatrix}, 
-            $$
-            이 때, ESO는 Luenberger observer 형태로 구성된다. 
-            $$
-            \hat{x}_{k+1} = A\hat{x}_{k} + Bu_{k} + L (y_{k} - C\hat{x}_{k}), \quad L = \begin{bmatrix} L_{1}, L_{2} \end{bmatrix}^{\top}
-            $$
-            관측 오차를 $e_{k} = x_{k} - \hat{x}_{k}$로 두면, 오차 동역학은 다음과 같이 주어진다.
-            $$
-            e_{k+1} = \left( A - LC \right) e_{k}.
-            $$
-            즉, ESO가 얼마나 빠르고 안정적으로 상태와 외란을 추정하는지는 행렬 $A-LC$의 관측기 고유값(oberser poles)에 의해 결정된다.
-
-            이차 시스템의 관측기 poles을 다음과 같이 주어졌다고 가정하자.
-            $$
-            \lambda_{1}, \quad \lambda_{2}, \quad \left( | \lambda_{i} | \lt 1 \right)
-            $$
-            이 두 poles을 갖는 desired characterstic equation은 
-            $$
-            \lambda^{2} - (\lambda_{1} + \lambda_{2}) \lambda + \lambda_{1} \lambda_{2}. 
-            $$
-            또한, 실제 ESO 오차 시스템의 characteristic equation을 계산하면,
-            $$
-            \text{det}\left( \lambda I - (A - LC) \right) = \lambda^{2} + (L_{1} - a - 1) \lambda + (a - L_{1} + L_{2}).
-            $$
-            이 두 특성 방정식을 같게 하고, 계수를 비교하면 다음과 같은 방정식을 얻는다.
-            $$
-            \begin{align}
-            L_{1} - a - 1  &= -(\lambda_{1} + \lambda_{2}), \\
-            a - L_{1} + L_{2} &= \lambda_{1}\lambda_{2}.
-            \end{align}
-            $$
-            이것을 풀면 관측기 이득은 다음과 같이 결정된다.
-            $$
-            \begin{align}
-            L_{1} = a + 1 - (\lambda_{1} + \lambda_{2} ), \\
-            L_{2} = 1 + \lambda_{1}\lambda_{2} - (\lambda_{1} + \lambda_{2}).
-            \end{align}
-            $$
-            따라서, ESO에서 원하는 관측 고유값을 선택하면, 그것에 대응하는 최적의 관측기 이득 $L_{1}$, $L_{2}$를 위와 같이 계산할 수 있다.
-          </p>
-        </div>
-      </details>
-    </section>
-
-    <!-- =========================================================
-         (6) Controller Design
-         ========================================================= -->
-    <section id="controller">
-      <h2>6. Controller Design</h2>
-
-      <h3 id="controller-mpc">6.1 MPC Formulation</h3>
-      <p>
-        본 연구에서는 ARX(1) 모델과 ESO 외란 추정값을 포함한 예측 모델을 기반으로
-        이산시간 모델 예측 제어(Model Predictive Control, MPC)를 구성하였다.
-        예측 모델은 다음과 같이 정의된다.
-      </p>
-
-      <p>
-        $$
-        T_{k+1} = a T_k + b u_k + \hat{z}_k
-        $$
-      </p>
-
-      <p>
-        여기서 $T_k$는 현재 온도, $u_k$는 정규화된 제어 입력,
-        $a, b$는 식별된 ARX(1) 모델 파라미터이며,
-        $\hat{z}_k$는 ESO를 통해 추정된 외란 항을 의미한다.
-      </p>
-
-      <p>
-        MPC는 예측 지평 $N$ 동안의 입력 시퀀스
-        $U = \{u_k, \dots, u_{k+N-1}\}$를 의사결정 변수로 하여,
-        다음의 누적 비용 함수를 최소화한다.
-      </p>
-
-      <p>
-        $$
-        \begin{aligned}
-        J = \sum_{i=0}^{N-1} \Big(
-          \beta (T_{k+i+1} - T^{\text{ref}}_{k+i})^2 
-          + \lambda (u_{k+i} - u_{k+i-1})^2 
-          + \eta u_{k+i}^2
-        \Big)
-        \end{aligned}
-        $$
-      </p>
-
-      <p>
-        여기서 $\beta$는 온도 추종 오차 가중치,
-        $\lambda$는 입력 변화율 패널티,
-        $\eta$는 입력 크기 패널티를 의미한다.
-        본 구현에서는 피크 입력 패널티 항($\gamma$)은 비활성화하였다.
-      </p>
-
-      <h3 id="controller-closedloop">6.3 Closed-loop Structure</h3>
       <p>
         전체 제어 시스템은 ARX(1) 모델, ESO, MPC가 결합된 폐루프 구조로 구성된다.
         현재 측정된 온도 $T_k$를 기반으로 ESO는 외란 $\hat{z}_k$를 실시간으로 추정하고,
-        해당 값은 MPC 예측 모델에 직접 반영된다.
-      </p>
-
-      <p>
-        MPC는 외란이 보정된 예측 모델을 사용하여
+        해당 값은 MPC 예측 모델에 직접 반영된다. MPC는 외란이 보정된 예측 모델을 사용하여
         입력 제약과 추종 성능을 동시에 만족하는 최적 입력 $u_k$를 계산한다.
         계산된 입력은 공정에 적용되며,
         다음 시점의 측정값을 통해 다시 ESO와 MPC가 갱신되는 구조를 따른다.
       </p>
 
+      <h3 id="data-decription">3.2 Data Description</h3>
+      <figure>
+        <img src="./assets/figure/given_data.png" alt="Given_data">
+      </figure>
       <p>
-        만약 MPC 최적화 문제가 해를 찾지 못하거나 수렴에 실패할 경우,
-        시스템 안정성을 확보하기 위해 별도로 설계된 fallback 제어기가 동작하도록 구성하였다.
+        본 연구에서는 실제 열처리 공정에서 수집된 운전 로그 데이터를 기반으로
+        공정 모델 식별 및 제어기 성능 검증을 수행하였다.
+        원시 데이터는 1분 주기의 CSV 로그 파일로,
+        번호, 상태, 일자, 설비 정보, 품목 정보, 공정 온도, 전력량(kWh)로 구성되어 있다.
+        이 중 모델링과 제어에 직접적으로 관련된 공정 온도와 전력 소비량만을 추출하여
+        전처리를 수행하였다.
       </p>
-
-
-
-      <h3 id="controller-closedloop11">6.4 Closed-loop Structure</h3>
-      <p><!-- TODO: ARX+ESO+MPC 결합 폐루프 설명 비워둠 --></p>
-
-      <!-- 기존 Linearized MPC 섹션은 Controller Design의 상세로 이동(내용 재사용) -->
-      <details>
-        <summary style="cursor:pointer; font-weight:bold;">[MPC QP Form (보기/숨기기)]</summary>
-        <div class="detail-box">
-          <p>국소 선형화 $x_{k+1} \approx A_k x_k + B_k u_k + c_k$에서, 표준 QP 형태:</p>
-          <p>
-            $$
-            \min_U\; \tfrac12 U^\top H U + g^\top U\quad \text{s.t.}\; G U \le h,\; A U = b,
-            $$
-          </p>
-          <p>
-            여기서 $U = [u_0^\top,\dots,u_{N-1}^\top]^\top$이며, $(A_k,B_k,Q,R,P)$로부터 $H,g,G,h,A,b$가 유도된다.
-          </p>
-        </div>
-      </details>
+      <p>
+        온도 데이터에는 측정 오류로 인해 0으로 기록된 구간이 존재하였으며,
+        이는 물리적으로 의미가 없으므로 선형 보간을 통해 보정하여
+        상태 변수의 연속성을 확보하였다.
+        제어 입력은 분당 전력 소비량을 기준으로 하여
+        이를 kW 단위로 변환한 후,
+        최대 전력 대비 비율로 정규화하여
+        0과 1 사이의 무차원 입력으로 정의하였다.
+      </p>
+      <p>
+        공정의 운전 특성을 반영하기 위해,
+        온도 변화율과 절대 온도 수준을 기준으로
+        전체 운전 구간을 세 개의 구간으로 구분하였다.
+        온도 상승이 뚜렷하고 전력이 인가되는 구간을 승온 구간(I = 1),
+        공정 온도가 910&nbsp;°C 이상으로 유지되는 구간을 고온 유지 구간(I = 2),
+        그리고 온도가 860&nbsp;°C 이상 910&nbsp;°C 미만으로 감소하는 구간을
+        냉각 구간(I = 3)으로 정의하였다.
+        각 구간에는 시간 진행에 따라 0에서 1까지 증가하는
+        정규화된 진행 변수 &lambda;를 부여하였다.
+      </p>
+      <p>
+        모델 식별에는 전처리된 데이터 중
+        승온 구간(I = 1)에 해당하는 데이터만을 사용하였다.
+        해당 구간은 제어 입력 변화에 따른 온도 응답이 가장 명확하게 나타나,
+        공정의 동특성을 식별하기에 적합하다.
+        반면, 고온 유지 및 냉각 구간은
+        식별된 모델의 검증과 MPC 제어 성능 평가에 활용하였다.
+      </p>
     </section>
+
+    <hr>
 
     <!-- =========================================================
-         (7) Results
+         (4) Modeling
          ========================================================= -->
-    <section id="results">
-      <h2>7. Results</h2>
+  <section id="control-design-framework">
+    <h2>4. Control Design Framework</h2>
 
-      <h3 id="results-rep">7.1 Representative Experiment</h3>
-      <p><!-- TODO: 대표 실험 시나리오/설명 비워둠 --></p>
+    <h3 id="control-oriented-model-strucuture">4.1 Control-Oriented Model Structure</h3>
 
-      <h3 id="results-input">7.2 Control Input Behavior</h3>
-      <p><!-- TODO: 입력 그래프/해석 비워둠 --></p>
+    <p>
+      본 프로젝트에서는 실제 열처리 공정을 대상으로
+      제어기 설계를 위한 <em>control-oriented model</em>을 구성하였다.
+      공정의 물리 모델을 상세하게 구성하기보다는,
+      제어 성능과 계산 효율을 우선하여
+      입력–출력 관계를 간결하게 표현할 수 있는
+      선형 시불변(discrete-time LTI) 모델을 채택하였다.
+    </p>
 
-      <h3 id="results-eso">7.3 Disturbance Compensation Effect</h3>
-      <p><!-- TODO: ESO 효과(전/후 비교 또는 외란 추정) 비워둠 --></p>
+    <p>
+      열처리 공정은 온도 변화가 매우 느리고,
+      제어 입력(전력)에 대해 비교적 단순한 누적 효과를 가지는 특성이 있다.
+      이러한 특성을 반영하여,
+      과거 출력과 현재 입력만을 사용하는
+      ARX(AutoRegressive with eXogenous input) 모델을 사용하였다.
+      그중에서도 가장 기본적인 형태인 ARX(1,1) 구조를 적용하였다.
+    </p>
 
-      <h3 id="results-summary">7.4 Summary of Multiple Runs</h3>
-      <p><!-- TODO: 6회 요약 표/지표 비워둠 --></p>
+    <p>
+      시간 스텝 <i>k</i>에서의 공정 온도를 <i>T<sub>k</sub></i>,
+      정규화된 제어 입력을 <i>u<sub>k</sub></i>라 할 때,
+      ARX(1,1) 모델은 다음과 같이 표현된다.
+    </p>
 
-      <!-- 기존 Experiments 미디어 블록 재사용: placeholder로 유지 -->
-      <figure>
-        <img src="./assets/run.gif" alt="MPC rollout GIF" />
-        <figcaption>예시 GIF (경로: <code>./assets/run.gif</code>)</figcaption>
-      </figure>
-      <figure>
-        <video src="./assets/traj.mp4" controls muted loop></video>
-        <figcaption>예시 동영상 (경로: <code>./assets/traj.mp4</code>)</figcaption>
-      </figure>
-      <div class="code">
-        TIP: GIF만 쓸 경우 &lt;video&gt; 블록을 삭제하세요. 파일은 <code>./assets/</code> 폴더에 두고 <code>src</code> 경로만 바꾸면 됩니다.
-      </div>
-    </section>
+    $$
+    T_{k+1} = aT_k + bu_k
+    $$
 
+    <p>
+      여기서 계수 <i>a</i>는 공정의 관성을 나타내며,
+      값이 1에 가까울수록 온도 변화가 느린 공정을 의미한다.
+      열처리 공정의 특성상 <i>a</i>는 1에 근접할 것으로 기대된다.
+      계수 <i>b</i>는 입력 전력이 온도 상승에 미치는 영향을 나타내며,
+      이 값이 작을 경우 제어 입력에 대한 온도 응답이 둔해질 수 있다.
+    </p>
 
+    <p>
+      이와 같이 단순한 모델 구조를 사용함으로써,
+      이후 MPC 설계 단계에서 계산 복잡도를 낮추고,
+      실시간 적용 가능성을 확보하는 것을 목표로 하였다.
+    </p>
+
+    <h3 id="parameter-identification">4.2 Parameter Identification</h3>
+
+    <p>
+      ARX(1,1) 모델의 계수 <i>a</i>, <i>b</i>는
+      실제 공정 데이터를 기반으로 시스템 식별(System Identification)을 통해 추정하였다.
+      전처리된 데이터 중,
+      제어 입력 변화에 따른 온도 응답이 가장 명확하게 나타나는
+      <strong>승온 구간</strong>의 데이터만을 식별에 사용하였다.
+    </p>
+
+    <p>
+      이는 온도 유지 구간이나 냉각 구간에 비해,
+      승온 구간이 공정의 동특성을 가장 잘 드러내며
+      모델 파라미터 추정에 유리하기 때문이다.
+    </p>
+
+    <p>
+      파라미터 추정은 최소자승법(Least Squares)을 기반으로 수행되었으며,
+      다음과 같은 비용 함수를 최소화하도록 계수를 결정하였다.
+    </p>
+
+    $$
+    \begin{align}
+    (a^{*}, b^{*})
+    &= \arg\min_{a,b}
+    \sum_{k=0}^{N-1}
+    \Big( T_{k+1} - aT_k - bu_k \Big)^2
+    \end{align}
+    $$
+
+    <p>
+      또한, 모델의 물리적 일관성과 안정성을 유지하기 위해
+      파라미터에 대해 간단한 제약 조건을 적용하였다.
+    </p>
+
+    $$
+    a_{\min} \le a \le a_{\max}, \quad
+    b_{\min} \le b \le b_{\max}
+    $$
+
+    <p>
+      본 실험에서는 열공정의 안정성과 관성 특성을 고려하여
+      <i>a</i>는 0과 1 사이,
+      <i>b</i>는 0 이상의 값을 갖도록 설정하였다.
+      이러한 제약은 비현실적인 모델 추정을 방지하고,
+      이후 MPC 설계 단계에서 안정적인 제어 성능을 확보하는 데 기여한다.
+    </p>
+
+    <p>
+      식별된 모델은 이후
+      외란 보상을 위한 상태 확장 및
+      MPC 기반 제어기 설계의 기본 모델로 활용된다.
+    </p>
+  
+    <!-- =========================================================
+         4.3 Disturbance Compensation via ESO
+         ========================================================= -->
+    <h3 id="disturbance-compensation-using-extended-state-observer">4.3 Disturbance Compensation using Extended State Observer</h3>
+  
+    <p>
+      앞서 식별한 ARX(1,1) 모델은 제어기 설계를 위한 간결한 공정 모델을 제공하지만,
+      실제 열처리 공정에서는 모델링 오차, 외란, 공정 조건 변화 등으로 인해
+      예측 오차가 누적될 수 있다.
+      이러한 오차는 MPC의 예측 정확도를 저하시켜
+      제어 입력이 과도해지거나 추종 성능이 저하되는 원인이 된다.
+    </p>
+  
+    <p>
+      이를 보완하기 위해 본 프로젝트에서는
+      Extended State Observer(ESO)를 도입하였다.
+      ESO는 모델로 설명되지 않는 모든 불확실성을
+      하나의 외란 항(disturbance)으로 묶어
+      실시간으로 추정하는 관측기이다.
+      추정된 외란을 예측 모델에 직접 반영함으로써,
+      MPC가 보다 실제 공정에 가까운 예측을 수행하도록 한다.
+    </p>
+  
+    <p>
+      식별된 ARX(1,1) 모델에 외란 상태 $z_k$를 추가하면,
+      공정 모델은 다음과 같은 확장 상태 형태로 표현된다.
+    </p>
+  
+    $$
+    \begin{aligned}
+    T_{k+1} &= aT_k + b u_k + z_k, \\
+    z_{k+1} &= z_k
+    \end{aligned}
+    $$
+  
+    <p>
+      여기서 $z_k$는 시간에 따라 천천히 변화하는 외란이라고 가정하여
+      상수 상태로 모델링하였다.
+      이 외란은 환경 변화, 열 손실, 모델 불일치 등을 포괄적으로 포함한다.
+    </p>
+  
+    <p>
+      이에 대응하는 선형 ESO는 다음과 같은 형태로 구성된다.
+    </p>
+  
+    $$
+    \begin{aligned}
+    \hat{T}_{k+1} &= a\hat{T}_k + b u_k + \hat{z}_k
+    + L_1 (T_k - \hat{T}_k), \\
+    \hat{z}_{k+1} &= \hat{z}_k
+    + L_2 (T_k - \hat{T}_k)
+    \end{aligned}
+    $$
+  
+    <p>
+      여기서 $\hat{T}_k$, $\hat{z}_k$는 각각 추정된 온도 상태와 외란이며,
+      $L_1$, $L_2$는 관측기 이득(observer gain)이다.
+      ESO는 상태 오차를 기반으로 외란을 실시간으로 보정함으로써,
+      모델 기반 제어기의 강건성을 향상시킨다.
+    </p>
+  
+    <p>
+      관측기 이득은 확장된 시스템의 관측기 고유값을
+      단위원 내부에 배치하는 방식으로 설계되었으며,
+      이를 통해 외란 추정의 안정성과 수렴 속도를 확보하였다.
+    </p>
+  
+    <!-- =========================================================
+         4.4 MPC Design with ESO-Augmented Model
+         ========================================================= -->
+    <h3 id="model-predictive--control-formulation">4.4 Model Predictive Control Formulation</h3>
+  
+    <p>
+      ESO를 통해 추정된 외란을 포함한 모델을 기반으로
+      이산시간 Model Predictive Control(MPC)을 설계하였다.
+      MPC의 예측 모델은 다음과 같이 정의된다.
+    </p>
+  
+    $$
+    T_{k+1} = a T_k + b u_k + \hat{z}_k
+    $$
+  
+    <p>
+      여기서 $T_k$는 현재 온도,
+      $u_k$는 정규화된 제어 입력,
+      $a$, $b$는 식별된 ARX 모델 계수,
+      $\hat{z}_k$는 ESO를 통해 추정된 외란 항이다.
+      외란 항을 예측 모델에 포함함으로써,
+      MPC는 모델 불확실성을 능동적으로 보상할 수 있다.
+    </p>
+  
+    <p>
+      MPC는 예측 지평 $N$ 동안의 제어 입력 시퀀스를 의사결정 변수로 하여,
+      다음과 같은 누적 비용 함수를 최소화한다.
+    </p>
+  
+    $$
+    \begin{aligned}
+    J = \sum_{i=0}^{N-1}
+    \Big(
+      \beta (T_{k+i+1} - T^{\mathrm{ref}}_{k+i})^2
+      + \lambda (u_{k+i} - u_{k+i-1})^2
+      + \eta u_{k+i}^2
+    \Big)
+    \end{aligned}
+    $$
+  
+    <p>
+      비용 함수의 첫 번째 항은 목표 온도 추종 성능을,
+      두 번째 항은 입력 변화의 급격함을 억제하기 위한 항이며,
+      세 번째 항은 입력 크기를 제한하기 위한 패널티이다.
+      가중치 $\beta$, $\lambda$, $\eta$는
+      추종 성능과 입력 제약 간의 균형을 고려하여 설정하였다.
+    </p>
+  
+    <p>
+      이러한 구조를 통해,
+      식별된 단순 모델을 기반으로 하면서도
+      외란과 모델 오차에 강인한 MPC 제어기를 구성할 수 있었다.
+    </p>
+  </section>
+  
+  <hr>
+  
+    <!-- =========================================================
+         (5) Results
+         ========================================================= -->
+  <section id="results">
+    <h2>5. Results</h2>
+  
+    <p>
+      아래 결과에서는 기존 PID 제어 하에서 수집된 운전 데이터를 기반으로 시스템 식별 및 MPC 설계를 수행하고, 
+      이를 통해 설계된 MPC가 기존 PID 제어기를 성공적으로 대체할 수 있는지를 평가한다. 총 6개의 독립적인 데이터셋을 
+      사용하여 각각 시스템 식별과 MPC 설계를 수행하였으며, 모ㅗ든 경우에서 정상적인 유사한 결과가 관찰되었다. 이에 따라, 
+      아래에서는 대표적 사례인 "250905-A081"에 대해서만 상세한 시각화 결과를 제시하고, 전체 데이터에 대해 성능 개선 효과를 
+      정량적 지표를 통해 요약하여 제시한다. 
+    </p>
+  
+    <!-- ========================= -->
+    <!-- 5.1 Representative Result -->
+    <!-- ========================= -->
+    <h3 id="representative-mpc-simulation">5.1 Representative MPC Simulation (데이터 : 250905-A081)</h3>
+  
+    <p>
+      아래에서는 설계된 MPC의 폐루프를 검증하기 위해 대표적인 시뮬레이션 결과를 제시한다. 이를 통해 기준 궤적
+      추종 성능, 외란 보상 능력, 오차 수렴 특성, 제어 입력을 시각적으로 검증한다.
+    </p>
+  
+    <!-- Tracking -->
+    <figure>
+      <img src="./assets/result/tracking_simulation.png" alt="Tracking Simulation">
+    </figure>
+
+    <p>
+      주황색 선은 목표 온도 궤적을, 파란색 선은 실제 공정 온도를 나타낸다.
+      본 공정에서는 허용 오차 ±5~±10 °C 범위 내에서
+      930 °C를 약 3시간 유지한 후, 880 °C를 약 1시간 유지하는
+      열처리 공정을 MPC를 통해 수행하는 것을 목표로 한다.
+      초기 온도에서 시작하여 약 72분 만에 첫 번째 목표 온도인
+      930 °C에 수렴하였으며, 이후 목표 온도가 880 °C로 변경된 뒤
+      약 267분 시점에서 두 번째 목표 온도에 안정적으로 수렴하였다.
+      두 목표 구간을 모두 만족한 후, 전체 열 공정은
+      약 326분 시점에서 종료되었음을 확인할 수 있다.
+    </p>
+
+  
+    <!-- Disturbance -->
+    <figure>
+      <img src="./assets/result/disturbance.png" alt="Estimated Disturbance">
+    </figure>
+
+    <p>
+      확장 상태 관측기(ESO)를 통해 추정된 외란 항을 나타낸다.
+      온도 목표 전환 구간 및 공정 조건 변화에 따라
+      외란 추정값이 적절히 변화하며,
+      MPC가 외란을 고려한 제어 입력을 생성할 수 있음을 보여준다.
+      특히 목표 온도 변경 구간에서 외란이 급격히 변화함에도 불구하고,
+      추정값이 빠르게 수렴하여 안정적인 제어 성능을 유지함을 확인할 수 있다.
+    </p>
+  
+    <!-- Error -->
+    <figure>
+      <img src="./assets/result/error_state.png" alt="Error State Evolution">
+    </figure>
+
+    <p>
+      실제 온도와 목표 온도 간의 추종 오차
+      \( e = T - T_{\mathrm{ref}} \)의 시간에 따른 변화를 나타낸다.
+      초기 구간에서는 큰 오차가 존재하지만,
+      MPC 제어 하에서 오차가 빠르게 감소하여
+      첫 번째 및 두 번째 목표 온도 구간 모두에서
+      오차가 거의 0에 수렴함을 확인할 수 있다.
+      이는 폐루프 시스템이 안정적으로 동작하며
+      추종 성능이 확보되었음을 의미한다.
+    </p>
+  
+    <!-- Control Input -->
+    <figure>
+      <img src="./assets/result/control_input.png" alt="Control Input">
+    </figure>
+  
+    <p>
+      MPC에 의해 생성된 제어 입력을 나타낸다.
+      초기 가열 구간에서는 빠른 온도 상승을 위해
+      상대적으로 큰 제어 입력이 적용되며,
+      목표 온도 도달 이후에는 입력이 안정적으로 유지된다.
+      목표 온도 전환 시 일시적인 입력 변화가 발생하지만,
+      과도한 진동이나 포화 없이
+      물리적으로 실현 가능한 범위 내에서 제어 입력이 유지됨을 확인할 수 있다.
+    </p>
+  
+    <!-- ========================= -->
+    <!-- 5.2 Quantitative Summary  -->
+    <!-- ========================= -->
+    <h3 id="quantitative-performance-comparison">5.2 Quantitative Performance Comparison (PID vs MPC)</h3>
+  
+    <p>
+      아래에서는 기존 PID 제어기를 MPC로 대체함에 따라
+      성능이 얼마나 개선되었는지를 정량적으로 평가한다.
+      총 6개의 데이터셋에 대해 성능 지표를 계산하였으며,
+      비교 지표로는 공정 수행 길이 감소,
+      누적 제어 입력 크기,
+      누적 추종 오차,
+      그리고 전체 이차 비용 함수를 사용하였다.
+      모든 지표에서 MPC 적용 시 일관된 성능 개선이 확인되었다.
+    </p>
+  
+    <div style="overflow-x:auto; margin-top:1em;">
+      <table style="
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 0.9em;
+        text-align: center;
+      ">
+        <thead>
+          <tr style="background:#f2f2f2;">
+            <th rowspan="2">Run ID</th>
+            <th colspan="3">공정 길이</th>
+            <th colspan="3">제어 입력</th>
+            <th colspan="3">추종 오차</th>
+            <th colspan="3">비용 함수</th>
+          </tr>
+          <tr style="background:#f9f9f9;">
+            <th>PID</th><th>MPC</th><th>↓ (%)</th>
+            <th>PID</th><th>MPC</th><th>↓ (%)</th>
+            <th>PID</th><th>MPC</th><th>↓ (%)</th>
+            <th>PID</th><th>MPC</th><th>↓ (%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>250904-A081</td>
+            <td>482</td><td>337</td><td class="rate">43.0</td>
+            <td>227.49</td><td>196.48</td><td class="rate">13.6</td>
+            <td>2133.22</td><td>1669.99</td><td class="rate">21.7</td>
+            <td>9.10e6</td><td>5.58e6</td><td class="rate">38.7</td>
+          </tr>
+    
+          <tr>
+            <td>250904-A082</td>
+            <td>486</td><td>327</td><td class="rate">48.6</td>
+            <td>222.34</td><td>184.96</td><td class="rate">16.8</td>
+            <td>1519.72</td><td>1189.27</td><td class="rate">21.7</td>
+            <td>4.62e6</td><td>2.83e6</td><td class="rate">38.8</td>
+          </tr>
+    
+          <tr>
+            <td>250904-A083</td>
+            <td>486</td><td>341</td><td class="rate">42.5</td>
+            <td>228.83</td><td>198.65</td><td class="rate">13.2</td>
+            <td>2041.85</td><td>1660.69</td><td class="rate">18.7</td>
+            <td>8.34e6</td><td>5.52e6</td><td class="rate">33.9</td>
+          </tr>
+    
+          <tr style="background:#eef6ff; font-weight:bold;">
+            <td>250905-A081</td>
+            <td>488</td><td>326</td><td class="rate">49.7</td>
+            <td>232.49</td><td>186.18</td><td class="rate">19.9</td>
+            <td>2196.39</td><td>1266.31</td><td class="rate">42.3</td>
+            <td>9.65e6</td><td>3.21e6</td><td class="rate">66.8</td>
+          </tr>
+    
+          <tr>
+            <td>250907-A081</td>
+            <td>500</td><td>348</td><td class="rate">43.7</td>
+            <td>249.11</td><td>220.91</td><td class="rate">11.3</td>
+            <td>2548.73</td><td>2072.84</td><td class="rate">18.7</td>
+            <td>1.30e7</td><td>8.59e6</td><td class="rate">33.9</td>
+          </tr>
+    
+          <tr>
+            <td>250907-A082</td>
+            <td>496</td><td>336</td><td class="rate">47.6</td>
+            <td>232.43</td><td>199.01</td><td class="rate">14.4</td>
+            <td>2195.61</td><td>1627.45</td><td class="rate">25.9</td>
+            <td>9.64e6</td><td>5.30e6</td><td class="rate">45.1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  
+    <p>
+      정량적 분석 결과, MPC는 모든 데이터셋에서
+      기존 PID 제어기 대비 공정 수행 시간 단축,
+      제어 입력 사용량 감소,
+      추종 오차 감소,
+      그리고 전체 비용 함수의 현저한 감소를 달성하였다.
+      이는 본 연구에서 설계한 MPC가
+      기존 PID 제어기를 안정적이고 효과적으로
+      대체할 수 있음을 의미한다.
+    </p>
+  </section>
+        
+        
     <!-- =========================================================
          (8) Practical Insights
          ========================================================= -->
     <section id="insights">
-      <h2>8. Practical Insights</h2>
+      <h2>6. Insights</h2>
 
       <h3 id="insights-worked">9.1 What Worked Well</h3>
       <p><!-- TODO: 비워둠 --></p>
